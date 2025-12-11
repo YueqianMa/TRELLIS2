@@ -1,0 +1,67 @@
+# ==============================================================================
+# TRELLIS RunPod Serverless - Python Dependencies
+# ==============================================================================
+
+# Build dependencies
+pip>=24.0
+packaging>=24.0
+setuptools>=41.0.0
+wheel
+ninja
+
+# PyTorch (install separately with CUDA index)
+# torch==2.1.2
+# torchvision==0.16.2
+# torchaudio==2.1.2
+
+# Attention backends (install separately with CUDA index)
+# xformers==0.0.23
+# flash-attn==2.3.6
+
+# Sparse convolutions
+# spconv-cu121
+
+# Core dependencies
+numpy
+scipy
+pillow
+imageio
+imageio-ffmpeg
+tqdm
+easydict
+safetensors
+
+# Background removal
+rembg
+onnxruntime
+
+# 3D processing
+trimesh
+open3d
+xatlas
+pyvista
+pymeshfix
+igraph
+
+# ML models
+transformers
+huggingface_hub
+
+# Training (optional)
+tensorboard
+pandas
+lpips
+
+# RunPod SDK
+runpod
+
+# Storage backends
+boto3
+requests
+
+# Custom packages (install via pip install git+...)
+# utils3d: git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
+# kaolin: pip install kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html
+# nvdiffrast: git clone + pip install from https://github.com/NVlabs/nvdiffrast.git
+# diffoctreerast: git clone + python setup.py install from https://github.com/JeffreyXiang/diffoctreerast.git
+# mip-splatting: git clone + python setup.py install from https://github.com/autonomousvision/mip-splatting.git

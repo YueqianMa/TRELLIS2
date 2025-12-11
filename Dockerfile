@@ -1,0 +1,136 @@
+# ==============================================================================
+# TRELLIS RunPod Serverless Dockerfile
+# Migrated from Cog/Replicate deployment
+# ==============================================================================
+
+FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH="${CUDA_HOME}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}"
+ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
+ENV ATTN_BACKEND=xformers
+ENV SPCONV_ALGO=native
+
+# Install system packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.10 \
+    python3.10-dev \
+    python3-pip \
+    python3.10-venv \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    ninja-build \
+    git \
+    cmake \
+    build-essential \
+    libglm-dev \
+    wget \
+    curl \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python3
+
+# Upgrade pip
+RUN python -m pip install --upgrade pip setuptools wheel packaging
+
+# Install PyTorch with CUDA 12.1 support
+RUN pip install --no-cache-dir \
+    torch==2.1.2 \
+    torchvision==0.16.2 \
+    torchaudio==2.1.2 \
+    --index-url https://download.pytorch.org/whl/cu121
+
+# Install attention backends
+RUN pip install --no-cache-dir xformers==0.0.23 --index-url https://download.pytorch.org/whl/cu121
+RUN pip install --no-cache-dir flash-attn==2.3.6 --no-build-isolation
+
+# Install spconv for sparse convolutions
+RUN pip install --no-cache-dir spconv-cu121
+
+# Install core ML dependencies
+RUN pip install --no-cache-dir \
+    numpy \
+    scipy \
+    pillow \
+    imageio \
+    imageio-ffmpeg \
+    tqdm \
+    easydict \
+    safetensors
+
+# Install background removal
+RUN pip install --no-cache-dir rembg onnxruntime
+
+# Install 3D processing libraries
+RUN pip install --no-cache-dir \
+    trimesh \
+    open3d \
+    xatlas \
+    pyvista \
+    pymeshfix \
+    igraph
+
+# Install transformers and huggingface
+RUN pip install --no-cache-dir \
+    transformers \
+    huggingface_hub
+
+# Install utils3d
+RUN pip install --no-cache-dir git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
+
+# Install kaolin
+RUN pip install --no-cache-dir kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html
+
+# Install nvdiffrast
+RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \
+    pip install --no-cache-dir /tmp/nvdiffrast && \
+    rm -rf /tmp/nvdiffrast
+
+# Install diffoctreerast for octree rendering
+RUN git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git /tmp/diffoctreerast && \
+    cd /tmp/diffoctreerast && \
+    python setup.py install && \
+    rm -rf /tmp/diffoctreerast
+
+# Install diff-gaussian-rasterization from mip-splatting
+RUN git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting && \
+    cd /tmp/mip-splatting/submodules/diff-gaussian-rasterization && \
+    python setup.py install && \
+    rm -rf /tmp/mip-splatting
+
+# Install RunPod SDK
+RUN pip install --no-cache-dir runpod
+
+# Install additional utilities (for S3 support, etc.)
+RUN pip install --no-cache-dir \
+    boto3 \
+    requests
+
+# Create workspace directory
+WORKDIR /app
+
+# Copy application code
+COPY trellis/ /app/trellis/
+COPY rp_handler.py /app/
+COPY configs/ /app/configs/
+
+# Pre-download models during build (optional, uncomment if you want to bake models into image)
+# This increases image size but reduces cold start time
+# RUN python -c "from trellis.pipelines import TrellisImageTo3DPipeline; TrellisImageTo3DPipeline.from_pretrained('gqk/TRELLIS-image-large-fork')"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD python -c "import torch; print(torch.cuda.is_available())" || exit 1
+
+# Run the handler
+CMD ["python", "-u", "rp_handler.py"]

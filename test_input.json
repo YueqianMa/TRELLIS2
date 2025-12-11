@@ -1,0 +1,20 @@
+{
+  "input": {
+    "images": [
+      "https://raw.githubusercontent.com/microsoft/TRELLIS/main/assets/example_image/T.png"
+    ],
+    "seed": 42,
+    "randomize_seed": false,
+    "generate_color": true,
+    "generate_normal": false,
+    "generate_model": true,
+    "save_gaussian_ply": false,
+    "return_no_background": false,
+    "ss_guidance_strength": 7.5,
+    "ss_sampling_steps": 12,
+    "slat_guidance_strength": 3.0,
+    "slat_sampling_steps": 12,
+    "mesh_simplify": 0.95,
+    "texture_size": 1024
+  }
+}
