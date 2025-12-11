@@ -13,7 +13,7 @@ from io import BytesIO
 
 # Set environment variables before importing torch
 os.environ['SPCONV_ALGO'] = 'native'
-os.environ['ATTN_BACKEND'] = os.environ.get('ATTN_BACKEND', 'xformers')
+os.environ['ATTN_BACKEND'] = os.environ.get('ATTN_BACKEND', 'flash-attn')
 
 import torch
 import numpy as np

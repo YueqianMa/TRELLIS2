@@ -13,7 +13,7 @@ ENV CUDA_HOME=/usr/local/cuda
 ENV PATH="${CUDA_HOME}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}"
 ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
-ENV ATTN_BACKEND=xformers
+ENV ATTN_BACKEND=flash-attn
 ENV SPCONV_ALGO=native
 
 # Install system packages
