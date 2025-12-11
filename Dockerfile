@@ -86,7 +86,7 @@ RUN pip install --no-cache-dir flash-attn==2.3.6 --no-build-isolation || \
     echo "Warning: flash-attn installation failed, will use xformers as fallback"
 
 # Install spconv for sparse convolutions (prefer pinned wheel; fallback to source build)
-ARG SPCONV_VERSION=2.3.6
+ARG SPCONV_VERSION=2.3.8
 RUN pip install --no-cache-dir spconv-cu121==${SPCONV_VERSION} || \
     pip install --no-cache-dir --no-binary spconv-cu121 spconv-cu121==${SPCONV_VERSION}
 
