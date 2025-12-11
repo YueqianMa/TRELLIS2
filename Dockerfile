@@ -22,14 +22,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10-dev \
     python3-pip \
     python3.10-venv \
+    # OpenGL/EGL libraries (runtime)
     libgl1-mesa-glx \
-    libgl1-mesa-dev \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
-    libxrender-dev \
     libxrender1 \
     libgomp1 \
+    libegl1 \
+    libglu1-mesa \
+    libglfw3 \
+    # OpenGL/EGL development libraries (for building nvdiffrast, etc.)
+    libgl1-mesa-dev \
+    libegl1-mesa-dev \
+    libgles2-mesa-dev \
+    libglu1-mesa-dev \
+    libglfw3-dev \
+    libxrender-dev \
+    # Build tools
     ninja-build \
     git \
     cmake \
@@ -38,17 +48,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     ffmpeg \
-    # Additional dependencies for open3d/pyvista/pymeshfix
+    # X11 libraries for open3d/pyvista
     libx11-6 \
+    libx11-dev \
     libxcursor1 \
     libxrandr2 \
     libxinerama1 \
     libxi6 \
     libxxf86vm1 \
     libxkbcommon0 \
-    libegl1 \
-    libglu1-mesa \
-    libglfw3 \
     xvfb \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
@@ -109,22 +117,23 @@ RUN pip install --no-cache-dir git+https://github.com/EasternJournalist/utils3d.
 # Install kaolin
 RUN pip install --no-cache-dir kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html
 
-# Install nvdiffrast
+# Install nvdiffrast (requires OpenGL/EGL dev libraries)
 RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \
-    pip install --no-cache-dir /tmp/nvdiffrast && \
-    rm -rf /tmp/nvdiffrast
+    cd /tmp/nvdiffrast && \
+    pip install --no-cache-dir . && \
+    cd / && rm -rf /tmp/nvdiffrast
 
 # Install diffoctreerast for octree rendering
 RUN git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git /tmp/diffoctreerast && \
     cd /tmp/diffoctreerast && \
-    python setup.py install && \
-    rm -rf /tmp/diffoctreerast
+    pip install --no-cache-dir . && \
+    cd / && rm -rf /tmp/diffoctreerast
 
 # Install diff-gaussian-rasterization from mip-splatting
 RUN git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting && \
     cd /tmp/mip-splatting/submodules/diff-gaussian-rasterization && \
-    python setup.py install && \
-    rm -rf /tmp/mip-splatting
+    pip install --no-cache-dir . && \
+    cd / && rm -rf /tmp/mip-splatting
 
 # Install RunPod SDK
 RUN pip install --no-cache-dir runpod
