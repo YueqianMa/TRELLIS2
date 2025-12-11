@@ -15,6 +15,7 @@ ENV LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}"
 ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
 ENV ATTN_BACKEND=flash-attn
 ENV SPCONV_ALGO=native
+ENV MAX_JOBS=6
 
 # Install system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -48,6 +49,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     ffmpeg \
+    libboost-all-dev \
+    libgoogle-glog-dev \
+    libsparsehash-dev \
     # X11 libraries for open3d/pyvista
     libx11-6 \
     libx11-dev \
@@ -81,8 +85,10 @@ RUN pip install --no-cache-dir flash-attn==2.3.6 --no-build-isolation || \
     pip install --no-cache-dir flash-attn --no-build-isolation || \
     echo "Warning: flash-attn installation failed, will use xformers as fallback"
 
-# Install spconv for sparse convolutions
-RUN pip install --no-cache-dir spconv-cu121
+# Install spconv for sparse convolutions (prefer pinned wheel; fallback to source build)
+ARG SPCONV_VERSION=2.3.6
+RUN pip install --no-cache-dir spconv-cu121==${SPCONV_VERSION} || \
+    pip install --no-cache-dir --no-binary spconv-cu121 spconv-cu121==${SPCONV_VERSION}
 
 # Install core ML dependencies
 RUN pip install --no-cache-dir \
@@ -93,7 +99,9 @@ RUN pip install --no-cache-dir \
     imageio-ffmpeg \
     tqdm \
     easydict \
-    safetensors
+    safetensors \
+    opencv-python-headless \
+    plyfile
 
 # Install background removal
 RUN pip install --no-cache-dir rembg onnxruntime
