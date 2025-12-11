@@ -6,13 +6,13 @@
 </p>
 <p align="center"><img src="assets/teaser.png" width="100%"></p>
 
-🚀 **[Try TRELLIS on Replicate](https://replicate.com/firtoz/trellis)** - Generate 3D models from images in your browser!
+🚀 **[Try TRELLIS on Replicate](https://replicate.com/yueqianma/trellis2)** - Generate 3D models from images in your browser!
 
-> **Note**: This Replicate deployment is maintained by firtoz, a fan of the TRELLIS project, and is not officially affiliated with Microsoft or the TRELLIS team. All rights, licenses, and intellectual property belong to Microsoft. For the original project, please visit [microsoft/TRELLIS](https://github.com/microsoft/TRELLIS).
+> **Note**: This is a fork maintained by YueqianMa. All rights, licenses, and intellectual property belong to Microsoft. For the original project, please visit [microsoft/TRELLIS](https://github.com/microsoft/TRELLIS).
 
 ***Check out our [Project Page](https://microsoft.github.io/TRELLIS/) for more videos and interactive demos!***
 
-<img src="https://github.com/microsoft/TRELLIS/blob/main/assets/teaser.png?raw=true" width="100%">
+<img src="https://github.com/YueqianMa/TRELLIS2/blob/main/assets/teaser.png?raw=true" width="100%">
 
 <!-- Updates -->
 ## ⏩ Updates
@@ -25,7 +25,7 @@
   - *Note: It is always recommended to do text to 3D generation by first generating images using text-to-image models and then using TRELLIS-image models for 3D generation. Text-conditioned models are less creative and detailed due to data limitations.*
 
 **12/26/2024**
-- Release [**TRELLIS-500K**](https://github.com/microsoft/TRELLIS#-dataset) dataset and toolkits for data preparation.
+- Release [**TRELLIS-500K**](https://github.com/YueqianMa/TRELLIS2#-dataset) dataset and toolkits for data preparation.
 
 **12/18/2024**
 - Implementation of multi-image conditioning for **TRELLIS-image** model. ([#7](https://github.com/microsoft/TRELLIS/issues/7)). This is based on tuning-free algorithm without training a specialized model, so it may not give the best results for all input images.
@@ -37,8 +37,8 @@
 
 1. Clone this repository with submodules:
     ```sh
-    git clone --recurse-submodules https://github.com/microsoft/TRELLIS.git
-    cd TRELLIS
+    git clone --recurse-submodules https://github.com/YueqianMa/TRELLIS2.git
+    cd TRELLIS2
     ```
 
 2. Install the dependencies:
@@ -79,7 +79,7 @@ We provide the following pretrained models:
 
 | Model | Description | #Params | Download |
 | --- | --- | --- | --- |
-| TRELLIS-image-large | Large image-to-3D model | 1.2B | [Download](https://huggingface.co/microsoft/TRELLIS-image-large) |
+| TRELLIS-image-large | Large image-to-3D model | 1.2B | [Download](https://huggingface.co/Circova/TRELLIS-image-large) |
 | TRELLIS-text-base | Base text-to-3D model | 342M | [Download](https://huggingface.co/microsoft/TRELLIS-text-base) |
 | TRELLIS-text-large | Large text-to-3D model | 1.1B | [Download](https://huggingface.co/microsoft/TRELLIS-text-large) |
 | TRELLIS-text-xlarge | Extra-large text-to-3D model | 2.0B | [Download](https://huggingface.co/microsoft/TRELLIS-text-xlarge) |
@@ -90,7 +90,7 @@ We provide the following pretrained models:
 
 The models are hosted on Hugging Face. You can directly load the models with their repository names in the code:
 ```python
-TrellisImageTo3DPipeline.from_pretrained("microsoft/TRELLIS-image-large")
+TrellisImageTo3DPipeline.from_pretrained("Circova/TRELLIS-image-large")
 ```
 
 If you prefer loading the model from local, you can download the model files from the links above and load the model with the folder path (folder structure should be maintained):
@@ -111,7 +111,7 @@ from trellis.pipelines import TrellisImageTo3DPipeline
 from trellis.utils import render_utils, postprocessing_utils
 
 # Load a pipeline from a model folder or a Hugging Face model hub.
-pipeline = TrellisImageTo3DPipeline.from_pretrained("microsoft/TRELLIS-image-large")
+pipeline = TrellisImageTo3DPipeline.from_pretrained("Circova/TRELLIS-image-large")
 pipeline.cuda()
 
 # Load an image
@@ -171,7 +171,7 @@ After running the code, you will get the following files:
 import replicate
 
 output = replicate.run(
-    "firtoz/trellis:version",
+    "yueqianma/trellis2:version",
     input={
         "seed": 0,
         "image": "https://replicate.delivery/pbxt/M6rvlcKpjcTijzvLfJw8SCWQ74M1jrxowbVDT6nNTxREcvxO/ephemeros_cartoonish_character_art_cyberpunk_crocodile_white_ba_486fb649-bc68-46a0-b429-751b43734b89.png",
@@ -244,12 +244,12 @@ TRELLIS's training framework is organized to provide a flexible and modular appr
 
 | Config | Pretained Model | Description |
 | --- | --- | --- |
-| [`vae/ss_vae_conv3d_16l8_fp16.json`](configs/vae/ss_vae_conv3d_16l8_fp16.json) | [Encoder](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/ss_enc_conv3d_16l8_fp16.safetensors) [Decoder](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/ss_dec_conv3d_16l8_fp16.safetensors) | Sparse structure VAE |
-| [`vae/slat_vae_enc_dec_gs_swin8_B_64l8_fp16.json`](configs/vae/slat_vae_enc_dec_gs_swin8_B_64l8_fp16.json) | [Encoder](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/slat_enc_swin8_B_64l8_fp16.safetensors) [Decoder](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/slat_dec_gs_swin8_B_64l8gs32_fp16.safetensors) | SLat VAE with Gaussian Decoder |
-| [`vae/slat_vae_dec_rf_swin8_B_64l8_fp16.json`](configs/vae/slat_vae_dec_rf_swin8_B_64l8_fp16.json) | [Decoder](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/slat_dec_rf_swin8_B_64l8r16_fp16.safetensors) | SLat Radiance Field Decoder |
-| [`vae/slat_vae_dec_mesh_swin8_B_64l8_fp16.json`](configs/vae/slat_vae_dec_mesh_swin8_B_64l8_fp16.json) | [Decoder](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/slat_dec_mesh_swin8_B_64l8m256c_fp16.safetensors) | SLat Mesh Decoder |
-| [`generation/ss_flow_img_dit_L_16l8_fp16.json`](configs/generation/ss_flow_img_dit_L_16l8_fp16.json) | [Denoiser](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/ss_flow_img_dit_L_16l8_fp16.safetensors) | Image conditioned sparse structure Flow Model |
-| [`generation/slat_flow_img_dit_L_64l8p2_fp16.json`](configs/generation/slat_flow_img_dit_L_64l8p2_fp16.json) | [Denoiser](https://huggingface.co/microsoft/TRELLIS-image-large/blob/main/ckpts/slat_flow_img_dit_L_64l8p2_fp16.safetensors) | Image conditioned SLat Flow Model |
+| [`vae/ss_vae_conv3d_16l8_fp16.json`](configs/vae/ss_vae_conv3d_16l8_fp16.json) | [Encoder](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/ss_enc_conv3d_16l8_fp16.safetensors) [Decoder](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/ss_dec_conv3d_16l8_fp16.safetensors) | Sparse structure VAE |
+| [`vae/slat_vae_enc_dec_gs_swin8_B_64l8_fp16.json`](configs/vae/slat_vae_enc_dec_gs_swin8_B_64l8_fp16.json) | [Encoder](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/slat_enc_swin8_B_64l8_fp16.safetensors) [Decoder](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/slat_dec_gs_swin8_B_64l8gs32_fp16.safetensors) | SLat VAE with Gaussian Decoder |
+| [`vae/slat_vae_dec_rf_swin8_B_64l8_fp16.json`](configs/vae/slat_vae_dec_rf_swin8_B_64l8_fp16.json) | [Decoder](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/slat_dec_rf_swin8_B_64l8r16_fp16.safetensors) | SLat Radiance Field Decoder |
+| [`vae/slat_vae_dec_mesh_swin8_B_64l8_fp16.json`](configs/vae/slat_vae_dec_mesh_swin8_B_64l8_fp16.json) | [Decoder](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/slat_dec_mesh_swin8_B_64l8m256c_fp16.safetensors) | SLat Mesh Decoder |
+| [`generation/ss_flow_img_dit_L_16l8_fp16.json`](configs/generation/ss_flow_img_dit_L_16l8_fp16.json) | [Denoiser](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/ss_flow_img_dit_L_16l8_fp16.safetensors) | Image conditioned sparse structure Flow Model |
+| [`generation/slat_flow_img_dit_L_64l8p2_fp16.json`](configs/generation/slat_flow_img_dit_L_64l8p2_fp16.json) | [Denoiser](https://huggingface.co/Circova/TRELLIS-image-large/blob/main/ckpts/slat_flow_img_dit_L_64l8p2_fp16.safetensors) | Image conditioned SLat Flow Model |
 | [`generation/ss_flow_txt_dit_B_16l8_fp16.json`](configs/generation/ss_flow_txt_dit_B_16l8_fp16.json) | [Denoiser](https://huggingface.co/microsoft/TRELLIS-text-base/blob/main/ckpts/ss_flow_txt_dit_B_16l8_fp16.safetensors) | Base text-conditioned sparse structure Flow Model |
 | [`generation/slat_flow_txt_dit_B_64l8p2_fp16.json`](configs/generation/slat_flow_txt_dit_B_64l8p2_fp16.json) | [Denoiser](https://huggingface.co/microsoft/TRELLIS-text-base/blob/main/ckpts/slat_flow_txt_dit_B_64l8p2_fp16.safetensors) | Base text-conditioned SLat Flow Model |
 | [`generation/ss_flow_txt_dit_L_16l8_fp16.json`](configs/generation/ss_flow_txt_dit_L_16l8_fp16.json) | [Denoiser](https://huggingface.co/microsoft/TRELLIS-text-large/blob/main/ckpts/ss_flow_txt_dit_L_16l8_fp16.safetensors) | Large text-conditioned sparse structure Flow Model |
@@ -354,5 +354,6 @@ If you find this work helpful, please consider citing our paper:
 
 - [Project Page](https://trellis3d.github.io)
 - [Paper](https://arxiv.org/abs/2412.01506)
-- [GitHub Repository](https://github.com/microsoft/TRELLIS)
+- [Original GitHub Repository](https://github.com/microsoft/TRELLIS)
+- [This Fork](https://github.com/YueqianMa/TRELLIS2)
 - [Hugging Face Demo](https://huggingface.co/spaces/JeffreyXiang/TRELLIS)

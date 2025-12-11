@@ -159,7 +159,7 @@ def load_model():
         return pipeline
 
     logger.info("Loading TRELLIS pipeline...")
-    pipeline = TrellisImageTo3DPipeline.from_pretrained("gqk/TRELLIS-image-large-fork")
+    pipeline = TrellisImageTo3DPipeline.from_pretrained("Circova/TRELLIS-image-large")
     pipeline.cuda()
 
     # Preload rembg for background removal

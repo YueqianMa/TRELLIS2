@@ -11,7 +11,7 @@ from trellis.pipelines import TrellisImageTo3DPipeline
 from trellis.utils import render_utils
 
 # Load a pipeline from a model folder or a Hugging Face model hub.
-pipeline = TrellisImageTo3DPipeline.from_pretrained("gqk/TRELLIS-image-large-fork")
+pipeline = TrellisImageTo3DPipeline.from_pretrained("Circova/TRELLIS-image-large")
 pipeline.cuda()
 
 # Load an image

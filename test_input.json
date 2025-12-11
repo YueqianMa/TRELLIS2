@@ -1,7 +1,7 @@
 {
   "input": {
     "images": [
-      "https://raw.githubusercontent.com/microsoft/TRELLIS/main/assets/example_image/T.png"
+      "https://raw.githubusercontent.com/YueqianMa/TRELLIS2/main/assets/example_image/T.png"
     ],
     "seed": 42,
     "randomize_seed": false,

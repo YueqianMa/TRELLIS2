@@ -126,7 +126,7 @@ COPY configs/ /app/configs/
 
 # Pre-download models during build (optional, uncomment if you want to bake models into image)
 # This increases image size but reduces cold start time
-# RUN python -c "from trellis.pipelines import TrellisImageTo3DPipeline; TrellisImageTo3DPipeline.from_pretrained('gqk/TRELLIS-image-large-fork')"
+# RUN python -c "from trellis.pipelines import TrellisImageTo3DPipeline; TrellisImageTo3DPipeline.from_pretrained('Circova/TRELLIS-image-large')"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
