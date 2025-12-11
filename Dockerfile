@@ -23,10 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3.10-venv \
     libgl1-mesa-glx \
+    libgl1-mesa-dev \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
+    libxrender1 \
     libgomp1 \
     ninja-build \
     git \
@@ -36,6 +38,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     ffmpeg \
+    # Additional dependencies for open3d/pyvista/pymeshfix
+    libx11-6 \
+    libxcursor1 \
+    libxrandr2 \
+    libxinerama1 \
+    libxi6 \
+    libxxf86vm1 \
+    libxkbcommon0 \
+    libegl1 \
+    libglu1-mesa \
+    libglfw3 \
+    xvfb \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3
@@ -52,7 +66,12 @@ RUN pip install --no-cache-dir \
 
 # Install attention backends
 RUN pip install --no-cache-dir xformers==0.0.23 --index-url https://download.pytorch.org/whl/cu121
-RUN pip install --no-cache-dir flash-attn==2.3.6 --no-build-isolation
+
+# Install flash-attn (use pre-built wheel if available, otherwise build from source)
+# Note: Building flash-attn requires significant memory and time
+RUN pip install --no-cache-dir flash-attn==2.3.6 --no-build-isolation || \
+    pip install --no-cache-dir flash-attn --no-build-isolation || \
+    echo "Warning: flash-attn installation failed, will use xformers as fallback"
 
 # Install spconv for sparse convolutions
 RUN pip install --no-cache-dir spconv-cu121
@@ -71,14 +90,13 @@ RUN pip install --no-cache-dir \
 # Install background removal
 RUN pip install --no-cache-dir rembg onnxruntime
 
-# Install 3D processing libraries
-RUN pip install --no-cache-dir \
-    trimesh \
-    open3d \
-    xatlas \
-    pyvista \
-    pymeshfix \
-    igraph
+# Install 3D processing libraries (install separately for better error tracking)
+RUN pip install --no-cache-dir trimesh
+RUN pip install --no-cache-dir open3d
+RUN pip install --no-cache-dir xatlas
+RUN pip install --no-cache-dir pyvista
+RUN pip install --no-cache-dir pymeshfix
+RUN pip install --no-cache-dir igraph
 
 # Install transformers and huggingface
 RUN pip install --no-cache-dir \
