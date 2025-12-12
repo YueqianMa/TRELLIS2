@@ -95,7 +95,7 @@ RUN pip install --no-cache-dir spconv-cu121==${SPCONV_VERSION} || \
 
 # Install core ML dependencies
 RUN pip install --no-cache-dir \
-    numpy \
+    numpy==1.26.4 \
     scipy \
     pillow \
     imageio \
@@ -127,7 +127,7 @@ RUN pip install --no-cache-dir --no-build-isolation git+https://github.com/Easte
 
 # Install kaolin
 RUN pip install --no-cache-dir --no-deps kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html && \
-    pip install --no-cache-dir numpy==2.1.2
+    pip install --no-cache-dir numpy==1.26.4
 
 # Install nvdiffrast (requires OpenGL/EGL dev libraries)
 RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \

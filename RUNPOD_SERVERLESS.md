@@ -50,10 +50,19 @@ curl -X POST https://api.runpod.ai/v2/<ENDPOINT_ID>/runsync \
   -d '{
         "input": {
           "images": ["https://your-s3-presigned-url/test.png"],
+          "seed": 0,
+          "randomize_seed": true,
           "generate_color": true,
+          "generate_normal": false,
           "generate_model": true,
           "save_gaussian_ply": true,
-          "return_no_background": true
+          "return_no_background": true,
+          "ss_guidance_strength": 7.5,
+          "ss_sampling_steps": 12,
+          "slat_guidance_strength": 3.0,
+          "slat_sampling_steps": 12,
+          "mesh_simplify": 0.95,
+          "texture_size": 1024
         }
       }'
 ```

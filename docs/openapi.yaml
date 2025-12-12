@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: TRELLIS RunPod Serverless API
+  version: 1.0.0
+servers:
+  - url: https://api.runpod.ai/v2/YOUR_ENDPOINT_ID
+paths:
+  /runsync:
+    post:
+      summary: Image-to-3D (synchronous)
+      description: Submit a job and wait for result in the same request.
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+          description: Bearer RUNPOD_API_KEY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunpodRequest"
+      responses:
+        "200":
+          description: Inference result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunpodResponse"
+  /run:
+    post:
+      summary: Image-to-3D (async)
+      description: Submit a job and get job id; poll /status or /result for output.
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+          description: Bearer RUNPOD_API_KEY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunpodRequest"
+      responses:
+        "200":
+          description: Job metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+components:
+  schemas:
+    RunpodRequest:
+      type: object
+      properties:
+        input:
+          $ref: "#/components/schemas/JobInput"
+      required: [input]
+    JobInput:
+      type: object
+      properties:
+        images:
+          type: array
+          items:
+            type: string
+          description: HTTP(S) URL、base64 或 data URL；多图会走 multi-image 逻辑。
+        seed:
+          type: integer
+          default: 0
+        randomize_seed:
+          type: boolean
+          default: true
+        generate_color:
+          type: boolean
+          default: true
+        generate_normal:
+          type: boolean
+          default: false
+        generate_model:
+          type: boolean
+          default: false
+        save_gaussian_ply:
+          type: boolean
+          default: false
+        return_no_background:
+          type: boolean
+          default: false
+        ss_guidance_strength:
+          type: number
+          default: 7.5
+          minimum: 0
+          maximum: 10
+        ss_sampling_steps:
+          type: integer
+          default: 12
+          minimum: 1
+          maximum: 50
+        slat_guidance_strength:
+          type: number
+          default: 3.0
+          minimum: 0
+          maximum: 10
+        slat_sampling_steps:
+          type: integer
+          default: 12
+          minimum: 1
+          maximum: 50
+        mesh_simplify:
+          type: number
+          default: 0.95
+          minimum: 0.9
+          maximum: 0.98
+        texture_size:
+          type: integer
+          default: 1024
+          minimum: 512
+          maximum: 2048
+      required: [images]
+    StorageItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [url, base64]
+        url:
+          type: string
+        data:
+          type: string
+        mime_type:
+          type: string
+        filename:
+          type: string
+    RunpodResponse:
+      type: object
+      description: 视参数决定返回哪些字段；S3 成功时为 URL，否则 base64。
+      properties:
+        seed:
+          type: integer
+        color_video:
+          $ref: "#/components/schemas/StorageItem"
+        normal_video:
+          $ref: "#/components/schemas/StorageItem"
+        combined_video:
+          $ref: "#/components/schemas/StorageItem"
+        model_file:
+          $ref: "#/components/schemas/StorageItem"
+        gaussian_ply:
+          $ref: "#/components/schemas/StorageItem"
+        no_background_images:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageItem"
+        error:
+          type: string
