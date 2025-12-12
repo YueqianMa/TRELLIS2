@@ -76,8 +76,11 @@ RUN pip install --no-cache-dir \
     torchaudio==2.1.2 \
     --index-url https://download.pytorch.org/whl/cu121
 
-# Install attention backends
-RUN pip install --no-cache-dir xformers==0.0.23 --index-url https://download.pytorch.org/whl/cu121
+# Install attention backends (keep torch 2.1.2, avoid downgrades)
+RUN pip install --no-cache-dir \
+    xformers==0.0.23.post1 \
+    --index-url https://download.pytorch.org/whl/cu121 \
+    --no-deps
 
 # Install flash-attn (use pre-built wheel if available, otherwise build from source)
 # Note: Building flash-attn requires significant memory and time
@@ -123,12 +126,13 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
 
 # Install kaolin
-RUN pip install --no-cache-dir kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html
+RUN pip install --no-cache-dir --no-deps kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html && \
+    pip install --no-cache-dir numpy==2.1.2
 
 # Install nvdiffrast (requires OpenGL/EGL dev libraries)
 RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \
     cd /tmp/nvdiffrast && \
-    pip install --no-cache-dir . && \
+    pip install --no-cache-dir --no-build-isolation . && \
     cd / && rm -rf /tmp/nvdiffrast
 
 # Install diffoctreerast for octree rendering
