@@ -138,7 +138,7 @@ RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \
 # Install diffoctreerast for octree rendering
 RUN git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git /tmp/diffoctreerast && \
     cd /tmp/diffoctreerast && \
-    pip install --no-cache-dir . && \
+    pip install --no-cache-dir --no-build-isolation . && \
     cd / && rm -rf /tmp/diffoctreerast
 
 # Install diff-gaussian-rasterization from mip-splatting
