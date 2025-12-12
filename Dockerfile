@@ -91,7 +91,7 @@ RUN pip install --no-cache-dir flash-attn==2.3.6 --no-build-isolation || \
 # Install spconv for sparse convolutions (prefer pinned wheel; fallback to source build)
 ARG SPCONV_VERSION=2.3.8
 RUN pip install --no-cache-dir spconv-cu121==${SPCONV_VERSION} || \
-    pip install --no-cache-dir --no-binary spconv-cu121 spconv-cu121==${SPCONV_VERSION}
+    pip install --no-cache-dir --no-build-isolation --no-binary spconv-cu121 spconv-cu121==${SPCONV_VERSION}
 
 # Install core ML dependencies
 RUN pip install --no-cache-dir \
@@ -123,7 +123,7 @@ RUN pip install --no-cache-dir \
     huggingface_hub
 
 # Install utils3d
-RUN pip install --no-cache-dir git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
+RUN pip install --no-cache-dir --no-build-isolation git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
 
 # Install kaolin
 RUN pip install --no-cache-dir --no-deps kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html && \
@@ -144,7 +144,7 @@ RUN git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreeras
 # Install diff-gaussian-rasterization from mip-splatting
 RUN git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting && \
     cd /tmp/mip-splatting/submodules/diff-gaussian-rasterization && \
-    pip install --no-cache-dir . && \
+    pip install --no-cache-dir --no-build-isolation . && \
     cd / && rm -rf /tmp/mip-splatting
 
 # Install RunPod SDK
