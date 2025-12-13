@@ -105,7 +105,8 @@ RUN pip install --no-cache-dir \
     safetensors \
     opencv-python-headless \
     plyfile \
-    pygltflib
+    pygltflib \
+    ipyevents
 
 # Install background removal
 RUN pip install --no-cache-dir rembg onnxruntime
@@ -129,6 +130,9 @@ RUN pip install --no-cache-dir --no-build-isolation git+https://github.com/Easte
 # Install kaolin
 RUN pip install --no-cache-dir --no-deps kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.2_cu121.html && \
     pip install --no-cache-dir numpy==1.26.4
+
+# Install warp (kaolin physics dependency)
+RUN pip install --no-cache-dir warp-lang==1.10.1
 
 # Install nvdiffrast (requires OpenGL/EGL dev libraries)
 RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \
