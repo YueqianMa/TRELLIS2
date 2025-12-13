@@ -104,7 +104,8 @@ RUN pip install --no-cache-dir \
     easydict \
     safetensors \
     opencv-python-headless \
-    plyfile
+    plyfile \
+    pygltflib
 
 # Install background removal
 RUN pip install --no-cache-dir rembg onnxruntime
