@@ -119,7 +119,7 @@ RUN pip install --no-cache-dir igraph
 
 # Install transformers and huggingface
 RUN pip install --no-cache-dir \
-    transformers==4.37.2 \
+    transformers==4.41.2 \
     huggingface_hub==0.20.3
 
 # Install utils3d
