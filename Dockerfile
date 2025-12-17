@@ -3,7 +3,7 @@
 # Migrated from Cog/Replicate deployment
 # ==============================================================================
 
-FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+FROM yueqianma/cuda121:base
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
