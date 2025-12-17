@@ -10,6 +10,7 @@ import tempfile
 import logging
 import uuid
 from io import BytesIO
+from datetime import datetime, timezone
 
 # Set environment variables before importing torch
 os.environ['SPCONV_ALGO'] = 'native'
@@ -87,7 +88,8 @@ class S3Storage(StorageBackend):
         self.client = boto3.client('s3', **client_kwargs)
 
     def upload(self, file_path: str, filename: str) -> dict:
-        key = f"trellis-outputs/{uuid.uuid4()}/{filename}"
+        timestamp = datetime.now(timezone.utc).strftime('%Y/%m/%d/%H%M%S')
+        key = f"trellis-outputs/{timestamp}_{uuid.uuid4()}/{filename}"
         self.client.upload_file(file_path, self.bucket, key)
 
         if self.public_url_base:
