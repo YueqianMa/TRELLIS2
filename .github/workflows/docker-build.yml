@@ -34,6 +34,30 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Prepare Tag from Commit Message
+        id: prep_tag
+        run: |
+          # 日期 (UTC)
+          DATE=$(date -u +%Y%m%d)
+          
+          # 获取最近一次提交的说明
+          MSG=$(git log -1 --format=%s)
+          
+          # 清洗: 转小写、替换非法字符、去重复横线、去首尾横线、限制长度
+          CLEAN_MSG=$(echo "$MSG" \
+            | tr '[:upper:]' '[:lower:]' \
+            | tr -c '[:alnum:]._-' '-' \
+            | sed 's/-\{2,\}/-/g; s/^-//; s/-$//' \
+            | cut -c 1-50)
+          
+          # 防止空结果
+          [ -z "$CLEAN_MSG" ] && CLEAN_MSG="no-message"
+          
+          SHORT_SHA="${GITHUB_SHA::7}"
+          
+          # 格式: 20250615-a1b2c3d-update-feature
+          echo "tag=${DATE}-${SHORT_SHA}-${CLEAN_MSG}" >> $GITHUB_OUTPUT
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -41,7 +65,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/trellis-runpod:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/trellis-runpod:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/trellis-runpod:${{ steps.prep_tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
