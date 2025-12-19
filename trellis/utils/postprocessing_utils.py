@@ -534,8 +534,9 @@ def glb_to_usdz(glb_mesh: trimesh.Trimesh, usdz_path: str, verbose: bool = True)
         if hasattr(glb_mesh.visual, 'uv') and glb_mesh.visual.uv is not None:
             uvs = glb_mesh.visual.uv
 
-            # Create texture coordinates primvar
-            texcoord_primvar = usd_mesh.CreatePrimvar(
+            # Create texture coordinates primvar using PrimvarsAPI
+            primvars_api = UsdGeom.PrimvarsAPI(usd_mesh)
+            texcoord_primvar = primvars_api.CreatePrimvar(
                 "st",
                 Sdf.ValueTypeNames.TexCoord2fArray,
                 UsdGeom.Tokens.faceVarying
