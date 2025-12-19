@@ -89,6 +89,11 @@ components:
         generate_model:
           type: boolean
           default: false
+          description: Generate 3D model file (GLB format)
+        generate_usdz:
+          type: boolean
+          default: false
+          description: Generate USDZ file for Apple devices (iOS, macOS, visionOS)
         save_gaussian_ply:
           type: boolean
           default: false
@@ -154,6 +159,10 @@ components:
           $ref: "#/components/schemas/StorageItem"
         model_file:
           $ref: "#/components/schemas/StorageItem"
+          description: GLB 3D model file
+        usdz_file:
+          $ref: "#/components/schemas/StorageItem"
+          description: USDZ 3D model file for Apple devices
         gaussian_ply:
           $ref: "#/components/schemas/StorageItem"
         no_background_images:
