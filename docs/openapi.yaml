@@ -123,13 +123,13 @@ components:
         mesh_simplify:
           type: number
           default: 0.95
-          minimum: 0.9
+          minimum: 0.1
           maximum: 0.98
         texture_size:
           type: integer
           default: 1024
           minimum: 512
-          maximum: 2048
+          maximum: 8192
       required: [images]
     StorageItem:
       type: object

@@ -273,8 +273,8 @@ def handler(job):
             ss_sampling_steps = max(1, min(50, job_input.get("ss_sampling_steps", 12)))
             slat_guidance_strength = max(0.0, min(10.0, job_input.get("slat_guidance_strength", 3.0)))
             slat_sampling_steps = max(1, min(50, job_input.get("slat_sampling_steps", 12)))
-            mesh_simplify = max(0.9, min(0.98, job_input.get("mesh_simplify", 0.95)))
-            texture_size = max(512, min(2048, job_input.get("texture_size", 1024)))
+            mesh_simplify = max(0.1, min(0.98, job_input.get("mesh_simplify", 0.95)))
+            texture_size = max(512, min(8192, job_input.get("texture_size", 1024)))
 
             # ================================================================
             # Process Images

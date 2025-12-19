@@ -84,16 +84,16 @@ class Predictor(BasePredictor):
             le=50
         ),
         mesh_simplify: float = Input(
-            description="GLB Extraction - Mesh Simplification (only used if generate_model=True)", 
+            description="GLB Extraction - Mesh Simplification (only used if generate_model=True)",
             default=0.95,
-            ge=0.9,
+            ge=0.1,
             le=0.98
         ),
         texture_size: int = Input(
             description="GLB Extraction - Texture Size (only used if generate_model=True)",
             default=1024,
             ge=512,
-            le=2048
+            le=8192
         )
     ) -> PredictOutput:
         """Run a single prediction on the model"""
