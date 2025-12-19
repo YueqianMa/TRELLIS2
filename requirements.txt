@@ -42,6 +42,7 @@ xatlas
 pyvista
 pymeshfix
 igraph
+usd-core  # OpenUSD library for USDZ export (Apple devices)
 
 # ML models
 transformers

@@ -464,6 +464,224 @@ def to_glb(
     return mesh
 
 
+def glb_to_usdz(glb_mesh: trimesh.Trimesh, usdz_path: str, verbose: bool = True) -> str:
+    """
+    Convert a GLB trimesh to USDZ format.
+
+    This function takes a trimesh object (typically from to_glb) and exports it
+    to USDZ format using the OpenUSD (pxr) library.
+
+    Args:
+        glb_mesh (trimesh.Trimesh): The mesh to convert (output from to_glb).
+        usdz_path (str): Path where the USDZ file will be saved.
+        verbose (bool): Whether to print progress information.
+
+    Returns:
+        str: Path to the exported USDZ file.
+    """
+    import tempfile
+    import zipfile
+    import os
+
+    try:
+        from pxr import Usd, UsdGeom, UsdShade, Sdf, Gf
+    except ImportError:
+        raise ImportError(
+            "OpenUSD (pxr) is required for USDZ export. "
+            "Install it with: pip install usd-core"
+        )
+
+    if verbose:
+        tqdm.write("Converting to USDZ format...")
+
+    # Create a temporary directory for intermediate files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create USD stage
+        usdc_path = os.path.join(temp_dir, "model.usdc")
+        stage = Usd.Stage.CreateNew(usdc_path)
+
+        # Set up the stage metadata
+        UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
+        UsdGeom.SetStageMetersPerUnit(stage, 1.0)
+
+        # Create root xform
+        root_path = "/Model"
+        root_xform = UsdGeom.Xform.Define(stage, root_path)
+        stage.SetDefaultPrim(root_xform.GetPrim())
+
+        # Create mesh
+        mesh_path = f"{root_path}/Mesh"
+        usd_mesh = UsdGeom.Mesh.Define(stage, mesh_path)
+
+        # Set mesh geometry
+        vertices = glb_mesh.vertices
+        faces = glb_mesh.faces
+
+        # Convert vertices to Gf.Vec3f array
+        points = [Gf.Vec3f(float(v[0]), float(v[1]), float(v[2])) for v in vertices]
+        usd_mesh.GetPointsAttr().Set(points)
+
+        # Set face vertex counts (all triangles = 3)
+        face_vertex_counts = [3] * len(faces)
+        usd_mesh.GetFaceVertexCountsAttr().Set(face_vertex_counts)
+
+        # Set face vertex indices (flattened)
+        face_vertex_indices = faces.flatten().tolist()
+        usd_mesh.GetFaceVertexIndicesAttr().Set(face_vertex_indices)
+
+        # Handle UVs and texture if available
+        texture_path = None
+        if hasattr(glb_mesh.visual, 'uv') and glb_mesh.visual.uv is not None:
+            uvs = glb_mesh.visual.uv
+
+            # Create texture coordinates primvar
+            texcoord_primvar = usd_mesh.CreatePrimvar(
+                "st",
+                Sdf.ValueTypeNames.TexCoord2fArray,
+                UsdGeom.Tokens.faceVarying
+            )
+
+            # Expand UVs to face-varying (one UV per face vertex)
+            face_uvs = []
+            for face in faces:
+                for vertex_idx in face:
+                    uv = uvs[vertex_idx]
+                    face_uvs.append(Gf.Vec2f(float(uv[0]), float(uv[1])))
+            texcoord_primvar.Set(face_uvs)
+
+            # Handle texture
+            if hasattr(glb_mesh.visual, 'material') and glb_mesh.visual.material is not None:
+                material = glb_mesh.visual.material
+                if hasattr(material, 'baseColorTexture') and material.baseColorTexture is not None:
+                    # Save texture to temp directory
+                    texture_path = os.path.join(temp_dir, "texture.png")
+                    if isinstance(material.baseColorTexture, Image.Image):
+                        material.baseColorTexture.save(texture_path)
+                    elif hasattr(material.baseColorTexture, 'save'):
+                        material.baseColorTexture.save(texture_path)
+
+        # Create material
+        material_path = f"{root_path}/Material"
+        usd_material = UsdShade.Material.Define(stage, material_path)
+
+        # Create PBR shader
+        shader_path = f"{material_path}/PBRShader"
+        shader = UsdShade.Shader.Define(stage, shader_path)
+        shader.CreateIdAttr("UsdPreviewSurface")
+
+        # Set shader properties
+        shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(1.0)
+        shader.CreateInput("metallic", Sdf.ValueTypeNames.Float).Set(0.0)
+
+        if texture_path and os.path.exists(texture_path):
+            # Create texture reader shader
+            texture_reader_path = f"{material_path}/TextureReader"
+            texture_reader = UsdShade.Shader.Define(stage, texture_reader_path)
+            texture_reader.CreateIdAttr("UsdUVTexture")
+            texture_reader.CreateInput("file", Sdf.ValueTypeNames.Asset).Set("texture.png")
+            texture_reader.CreateInput("wrapS", Sdf.ValueTypeNames.Token).Set("repeat")
+            texture_reader.CreateInput("wrapT", Sdf.ValueTypeNames.Token).Set("repeat")
+            texture_reader.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+
+            # Create ST reader for UV coordinates
+            st_reader_path = f"{material_path}/STReader"
+            st_reader = UsdShade.Shader.Define(stage, st_reader_path)
+            st_reader.CreateIdAttr("UsdPrimvarReader_float2")
+            st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token).Set("st")
+            st_reader.CreateOutput("result", Sdf.ValueTypeNames.Float2)
+
+            # Connect ST reader to texture
+            texture_reader.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(
+                st_reader.GetOutput("result")
+            )
+
+            # Connect texture to shader diffuse color
+            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
+                texture_reader.GetOutput("rgb")
+            )
+        else:
+            # Set default white color if no texture
+            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(Gf.Vec3f(1.0, 1.0, 1.0))
+
+        # Create shader output and connect to material
+        shader.CreateOutput("surface", Sdf.ValueTypeNames.Token)
+        usd_material.CreateSurfaceOutput().ConnectToSource(shader.GetOutput("surface"))
+
+        # Bind material to mesh
+        UsdShade.MaterialBindingAPI(usd_mesh).Bind(usd_material)
+
+        # Save the stage
+        stage.GetRootLayer().Save()
+
+        # Create USDZ package (zip file with specific structure)
+        with zipfile.ZipFile(usdz_path, 'w', zipfile.ZIP_STORED) as usdz:
+            # Add the USD file first (must be first file in archive)
+            usdz.write(usdc_path, "model.usdc")
+
+            # Add texture if it exists
+            if texture_path and os.path.exists(texture_path):
+                usdz.write(texture_path, "texture.png")
+
+        if verbose:
+            tqdm.write(f"USDZ file saved to: {usdz_path}")
+
+    return usdz_path
+
+
+def to_usdz(
+    app_rep: Union[Strivec, Gaussian],
+    mesh: MeshExtractResult,
+    simplify: float = 0.95,
+    fill_holes: bool = True,
+    fill_holes_max_size: float = 0.04,
+    texture_size: int = 1024,
+    debug: bool = False,
+    verbose: bool = True,
+) -> bytes:
+    """
+    Convert a generated asset to USDZ format.
+
+    This function first generates a GLB mesh using to_glb(), then converts it
+    to USDZ format for use on Apple devices (iOS, macOS, visionOS).
+
+    Args:
+        app_rep (Union[Strivec, Gaussian]): Appearance representation.
+        mesh (MeshExtractResult): Extracted mesh.
+        simplify (float): Ratio of faces to remove in simplification.
+        fill_holes (bool): Whether to fill holes in the mesh.
+        fill_holes_max_size (float): Maximum area of a hole to fill.
+        texture_size (int): Size of the texture.
+        debug (bool): Whether to print debug information.
+        verbose (bool): Whether to print progress.
+
+    Returns:
+        bytes: The USDZ file contents as bytes.
+    """
+    import tempfile
+    import os
+
+    # First generate the GLB mesh using existing function
+    glb_mesh = to_glb(
+        app_rep=app_rep,
+        mesh=mesh,
+        simplify=simplify,
+        fill_holes=fill_holes,
+        fill_holes_max_size=fill_holes_max_size,
+        texture_size=texture_size,
+        debug=debug,
+        verbose=verbose,
+    )
+
+    # Convert to USDZ
+    with tempfile.TemporaryDirectory() as temp_dir:
+        usdz_path = os.path.join(temp_dir, "model.usdz")
+        glb_to_usdz(glb_mesh, usdz_path, verbose=verbose)
+
+        # Read and return the bytes
+        with open(usdz_path, 'rb') as f:
+            return f.read()
+
+
 def simplify_gs(
     gs: Gaussian,
     simplify: float = 0.95,

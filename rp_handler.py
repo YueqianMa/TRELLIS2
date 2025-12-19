@@ -57,6 +57,7 @@ class Base64Storage(StorageBackend):
         mime_types = {
             'mp4': 'video/mp4',
             'glb': 'model/gltf-binary',
+            'usdz': 'model/vnd.usdz+zip',
             'ply': 'application/octet-stream',
             'png': 'image/png',
         }
@@ -224,6 +225,7 @@ def handler(job):
             "generate_color": true,             # Optional: generate color video
             "generate_normal": false,           # Optional: generate normal video
             "generate_model": false,            # Optional: generate GLB file
+            "generate_usdz": false,             # Optional: generate USDZ file (Apple devices)
             "save_gaussian_ply": false,         # Optional: save Gaussian PLY
             "return_no_background": false,      # Optional: return preprocessed images
             "ss_guidance_strength": 7.5,        # Optional: stage 1 guidance
@@ -262,6 +264,7 @@ def handler(job):
             generate_color = job_input.get("generate_color", True)
             generate_normal = job_input.get("generate_normal", False)
             generate_model = job_input.get("generate_model", False)
+            generate_usdz = job_input.get("generate_usdz", False)
             save_gaussian_ply = job_input.get("save_gaussian_ply", False)
             return_no_background = job_input.get("return_no_background", False)
 
@@ -387,7 +390,8 @@ def handler(job):
             # ================================================================
             # Generate GLB Model
             # ================================================================
-            if generate_model:
+            glb = None  # Cache GLB for potential USDZ reuse
+            if generate_model or generate_usdz:
                 logger.info("Generating GLB model...")
                 glb = postprocessing_utils.to_glb(
                     outputs['gaussian'][0],
@@ -396,10 +400,21 @@ def handler(job):
                     texture_size=texture_size,
                     verbose=False
                 )
-                model_path = os.path.join(temp_dir, "model.glb")
-                glb.export(model_path)
-                output["model_file"] = storage.upload(model_path, "model.glb")
-                logger.info("GLB model generated successfully")
+                if generate_model:
+                    model_path = os.path.join(temp_dir, "model.glb")
+                    glb.export(model_path)
+                    output["model_file"] = storage.upload(model_path, "model.glb")
+                    logger.info("GLB model generated successfully")
+
+            # ================================================================
+            # Generate USDZ Model
+            # ================================================================
+            if generate_usdz:
+                logger.info("Generating USDZ model...")
+                usdz_path = os.path.join(temp_dir, "model.usdz")
+                postprocessing_utils.glb_to_usdz(glb, usdz_path, verbose=False)
+                output["usdz_file"] = storage.upload(usdz_path, "model.usdz")
+                logger.info("USDZ model generated successfully")
 
             # ================================================================
             # Save Gaussian PLY

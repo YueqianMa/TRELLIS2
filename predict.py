@@ -22,6 +22,7 @@ class PredictOutput(BaseModel):
     normal_video: Path | None = None
     combined_video: Path | None = None
     model_file: Path | None = None
+    usdz_file: Path | None = None
     gaussian_ply: Path | None = None
 
 
@@ -55,6 +56,7 @@ class Predictor(BasePredictor):
         generate_color: bool = Input(description="Generate color video render", default=True),
         generate_normal: bool = Input(description="Generate normal video render", default=False),
         generate_model: bool = Input(description="Generate 3D model file (GLB)", default=False),
+        generate_usdz: bool = Input(description="Generate USDZ file for Apple devices (iOS, macOS, visionOS)", default=False),
         save_gaussian_ply: bool = Input(description="Save Gaussian point cloud as PLY file", default=False),
         return_no_background: bool = Input(description="Return the preprocessed images without background", default=False),
         ss_guidance_strength: float = Input(
@@ -157,6 +159,7 @@ class Predictor(BasePredictor):
         normal_path = None
         combined_path = None
         model_path = None
+        usdz_path = None
         gaussian_path = None
 
         # Render videos if requested
@@ -214,8 +217,9 @@ class Predictor(BasePredictor):
             
             self.logger.info("Video rendering complete!")
         
-        # Generate GLB only if requested
-        if generate_model:
+        # Generate GLB/USDZ models if requested
+        glb = None  # Cache GLB for potential USDZ reuse
+        if generate_model or generate_usdz:
             self.logger.info("Generating GLB model...")
             glb = postprocessing_utils.to_glb(
                 outputs['gaussian'][0],
@@ -224,10 +228,18 @@ class Predictor(BasePredictor):
                 texture_size=texture_size,
                 verbose=False
             )
-            model_path = Path("output.glb")
-            glb.export(str(model_path))
-            self.logger.info("GLB model generation complete!")
-        
+            if generate_model:
+                model_path = Path("output.glb")
+                glb.export(str(model_path))
+                self.logger.info("GLB model generation complete!")
+
+        # Generate USDZ if requested
+        if generate_usdz:
+            self.logger.info("Generating USDZ model...")
+            usdz_path = Path("output.usdz")
+            postprocessing_utils.glb_to_usdz(glb, str(usdz_path), verbose=False)
+            self.logger.info("USDZ model generation complete!")
+
         # Save Gaussian PLY if requested
         if save_gaussian_ply:
             self.logger.info("Saving Gaussian point cloud as PLY...")
@@ -242,5 +254,6 @@ class Predictor(BasePredictor):
             normal_video=normal_path if (generate_normal and not generate_color) else None,
             combined_video=combined_path if (generate_color and generate_normal) else None,
             model_file=model_path,
+            usdz_file=usdz_path if generate_usdz else None,
             gaussian_ply=gaussian_path if save_gaussian_ply else None
         )

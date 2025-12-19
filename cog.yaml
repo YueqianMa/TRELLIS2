@@ -44,6 +44,8 @@ build:
     - pip install --no-cache-dir rembg onnxruntime
     - pip install --no-cache-dir trimesh open3d xatlas pyvista pymeshfix
     - pip install --no-cache-dir igraph transformers huggingface_hub
+    # Install OpenUSD for USDZ export (Apple devices support)
+    - pip install --no-cache-dir usd-core
     # Install utils3d
     - pip install git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
     # Install kaolin

@@ -118,6 +118,8 @@ RUN pip install --no-cache-dir xatlas
 RUN pip install --no-cache-dir pyvista
 RUN pip install --no-cache-dir pymeshfix
 RUN pip install --no-cache-dir igraph
+# Install OpenUSD for USDZ export (Apple devices support)
+RUN pip install --no-cache-dir usd-core
 
 # Install transformers and huggingface
 RUN pip install --no-cache-dir \
