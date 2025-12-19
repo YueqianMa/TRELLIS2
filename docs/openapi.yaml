@@ -107,7 +107,7 @@ components:
           maximum: 10
         ss_sampling_steps:
           type: integer
-          default: 12
+          default: 36
           minimum: 1
           maximum: 50
         slat_guidance_strength:
@@ -117,17 +117,17 @@ components:
           maximum: 10
         slat_sampling_steps:
           type: integer
-          default: 12
+          default: 30
           minimum: 1
           maximum: 50
         mesh_simplify:
           type: number
-          default: 0.95
+          default: 0.90
           minimum: 0.1
           maximum: 0.98
         texture_size:
           type: integer
-          default: 1024
+          default: 2048
           minimum: 512
           maximum: 8192
       required: [images]

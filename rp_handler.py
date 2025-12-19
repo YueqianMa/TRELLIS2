@@ -270,11 +270,11 @@ def handler(job):
 
             # Sampling parameters with validation
             ss_guidance_strength = max(0.0, min(10.0, job_input.get("ss_guidance_strength", 7.5)))
-            ss_sampling_steps = max(1, min(50, job_input.get("ss_sampling_steps", 12)))
+            ss_sampling_steps = max(1, min(50, job_input.get("ss_sampling_steps", 36)))
             slat_guidance_strength = max(0.0, min(10.0, job_input.get("slat_guidance_strength", 3.0)))
-            slat_sampling_steps = max(1, min(50, job_input.get("slat_sampling_steps", 12)))
-            mesh_simplify = max(0.1, min(0.98, job_input.get("mesh_simplify", 0.95)))
-            texture_size = max(512, min(8192, job_input.get("texture_size", 1024)))
+            slat_sampling_steps = max(1, min(50, job_input.get("slat_sampling_steps", 30)))
+            mesh_simplify = max(0.1, min(0.98, job_input.get("mesh_simplify", 0.90)))
+            texture_size = max(512, min(8192, job_input.get("texture_size", 2048)))
 
             # ================================================================
             # Process Images

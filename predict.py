@@ -67,7 +67,7 @@ class Predictor(BasePredictor):
         ),
         ss_sampling_steps: int = Input(
             description="Stage 1: Sparse Structure Generation - Sampling Steps",
-            default=12,
+            default=36,
             ge=1,
             le=50
         ),
@@ -79,19 +79,19 @@ class Predictor(BasePredictor):
         ),
         slat_sampling_steps: int = Input(
             description="Stage 2: Structured Latent Generation - Sampling Steps",
-            default=12,
+            default=30,
             ge=1,
             le=50
         ),
         mesh_simplify: float = Input(
             description="GLB Extraction - Mesh Simplification (only used if generate_model=True)",
-            default=0.95,
+            default=0.90,
             ge=0.1,
             le=0.98
         ),
         texture_size: int = Input(
             description="GLB Extraction - Texture Size (only used if generate_model=True)",
-            default=1024,
+            default=2048,
             ge=512,
             le=8192
         )
